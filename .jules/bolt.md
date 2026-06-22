@@ -1,0 +1,3 @@
+## 2025-03-05 - Django N+1 Query in Dashboard
+**Learning:** In Django, iterating over a queryset that references foreign keys (like `p.topic.name` from a `UserProgress` queryset) without pre-fetching the related objects causes an N+1 query problem. This was heavily impacting the `dashboard` endpoint where it fetched all user progress records and then independently queried the topic for each record.
+**Action:** Use `.select_related('topic')` on the `UserProgress` queryset to fetch the related topic data in a single SQL join, drastically reducing the number of database queries (from N queries to 1-2 queries) and improving response times.

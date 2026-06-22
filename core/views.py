@@ -1201,7 +1201,8 @@ class UserProgressViewSet(viewsets.ModelViewSet):
         """Get overall progress dashboard"""
         subject_id = request.query_params.get('subject_id')
         
-        progress_qs = UserProgress.objects.filter(user=request.user)
+        # ⚡ Bolt: Use select_related to prevent N+1 queries when accessing p.topic.name
+        progress_qs = UserProgress.objects.filter(user=request.user).select_related('topic')
         if subject_id:
             progress_qs = progress_qs.filter(topic__unit__subject_id=subject_id)
             total_topics = Topic.objects.filter(unit__subject_id=subject_id).count()
