@@ -103,6 +103,7 @@ export function Sidebar({
             size="icon"
             onClick={onClose}
             className="absolute top-4 right-4 lg:hidden text-white hover:bg-white/20"
+            aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
           </Button>
@@ -120,7 +121,7 @@ export function Sidebar({
                 <span className="text-xs text-muted-foreground">Free Plan</span>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={onSettingsClick}>
+            <Button variant="ghost" size="icon" onClick={onSettingsClick} aria-label="Settings">
               <Settings className="h-4 w-4" />
             </Button>
           </div>
