@@ -58,6 +58,8 @@ class TopicSerializer(serializers.ModelSerializer):
         return hasattr(obj, 'mindmap')
     
     def get_flashcard_count(self, obj):
+        if hasattr(obj, 'flashcard_count'):
+            return obj.flashcard_count
         return obj.flashcards.count()
     
     def get_mcq_count(self, obj):
