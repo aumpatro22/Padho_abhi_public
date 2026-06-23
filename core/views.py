@@ -635,7 +635,10 @@ class TopicViewSet(viewsets.ModelViewSet):
     serializer_class = TopicSerializer
     
     def get_queryset(self):
-        queryset = Topic.objects.filter(unit__subject__user=self.request.user)
+        from django.db.models import Count
+        queryset = Topic.objects.filter(unit__subject__user=self.request.user).annotate(
+            flashcard_count=Count('flashcards', distinct=True)
+        )
         unit_id = self.request.query_params.get('unit', None)
         subject_id = self.request.query_params.get('subject', None)
         if unit_id:
