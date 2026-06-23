@@ -517,7 +517,13 @@ class SubjectViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Subject.objects.filter(user=self.request.user)
+        queryset = Subject.objects.filter(user=self.request.user)
+        if self.action == 'list':
+            queryset = queryset.annotate(
+                annotated_unit_count=Count('units', distinct=True),
+                annotated_topic_count=Count('units__topics', distinct=True)
+            )
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
