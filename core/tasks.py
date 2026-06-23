@@ -81,30 +81,39 @@ def generate_content_task(topic_id: int, user_id: int, api_key: str = None):
         if 'flashcards' in content and content['flashcards']:
             # Clear existing flashcards
             topic.flashcards.all().delete()
-            for fc in content['flashcards']:
-                Flashcard.objects.create(
+            flashcards_to_create = [
+                Flashcard(
                     topic=topic,
                     front_text=fc.get('front', ''),
                     back_text=fc.get('back', '')
                 )
+                for fc in content['flashcards']
+            ]
+            if flashcards_to_create:
+                Flashcard.objects.bulk_create(flashcards_to_create)
         
         # Save MCQs
         if 'mcqs' in content and content['mcqs']:
             # Clear existing MCQs
             topic.mcqs.all().delete()
+            mcqs_to_create = []
             for mcq in content['mcqs']:
                 options = mcq.get('options', {})
-                MCQQuestion.objects.create(
-                    topic=topic,
-                    question_text=mcq.get('question', ''),
-                    option_a=options.get('a', ''),
-                    option_b=options.get('b', ''),
-                    option_c=options.get('c', ''),
-                    option_d=options.get('d', ''),
-                    correct_option=mcq.get('correct', 'a'),
-                    explanation=mcq.get('explanation', ''),
-                    difficulty=mcq.get('difficulty', 'medium')
+                mcqs_to_create.append(
+                    MCQQuestion(
+                        topic=topic,
+                        question_text=mcq.get('question', ''),
+                        option_a=options.get('a', ''),
+                        option_b=options.get('b', ''),
+                        option_c=options.get('c', ''),
+                        option_d=options.get('d', ''),
+                        correct_option=mcq.get('correct', 'a'),
+                        explanation=mcq.get('explanation', ''),
+                        difficulty=mcq.get('difficulty', 'medium')
+                    )
                 )
+            if mcqs_to_create:
+                MCQQuestion.objects.bulk_create(mcqs_to_create)
         
         # Update token usage
         if content.get('usage'):
@@ -225,12 +234,16 @@ def generate_flashcards_task(topic_id: int, user_id: int, api_key: str = None):
         
         # Clear and recreate flashcards
         topic.flashcards.all().delete()
-        for fc in flashcards_data.get('flashcards', []):
-            Flashcard.objects.create(
+        flashcards_to_create = [
+            Flashcard(
                 topic=topic,
                 front_text=fc.get('front', ''),
                 back_text=fc.get('back', '')
             )
+            for fc in flashcards_data.get('flashcards', [])
+        ]
+        if flashcards_to_create:
+            Flashcard.objects.bulk_create(flashcards_to_create)
         
         task.status = 'completed'
         task.completed_at = timezone.now()

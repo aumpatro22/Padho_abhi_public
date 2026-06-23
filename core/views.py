@@ -731,28 +731,37 @@ class TopicViewSet(viewsets.ModelViewSet):
         
         # Save flashcards
         if 'flashcards' in content and content['flashcards']:
-            for fc in content['flashcards']:
-                Flashcard.objects.create(
+            flashcards_to_create = [
+                Flashcard(
                     topic=topic,
                     front_text=fc.get('front', ''),
                     back_text=fc.get('back', '')
                 )
+                for fc in content['flashcards']
+            ]
+            if flashcards_to_create:
+                Flashcard.objects.bulk_create(flashcards_to_create)
         
         # Save MCQs
         if 'mcqs' in content and content['mcqs']:
+            mcqs_to_create = []
             for mcq in content['mcqs']:
                 options = mcq.get('options', {})
-                MCQQuestion.objects.create(
-                    topic=topic,
-                    question_text=mcq.get('question', ''),
-                    option_a=options.get('a', ''),
-                    option_b=options.get('b', ''),
-                    option_c=options.get('c', ''),
-                    option_d=options.get('d', ''),
-                    correct_option=mcq.get('correct', 'a'),
-                    explanation=mcq.get('explanation', ''),
-                    difficulty=mcq.get('difficulty', 'medium')
+                mcqs_to_create.append(
+                    MCQQuestion(
+                        topic=topic,
+                        question_text=mcq.get('question', ''),
+                        option_a=options.get('a', ''),
+                        option_b=options.get('b', ''),
+                        option_c=options.get('c', ''),
+                        option_d=options.get('d', ''),
+                        correct_option=mcq.get('correct', 'a'),
+                        explanation=mcq.get('explanation', ''),
+                        difficulty=mcq.get('difficulty', 'medium')
+                    )
                 )
+            if mcqs_to_create:
+                MCQQuestion.objects.bulk_create(mcqs_to_create)
         
         return Response({
             'status': 'success',
@@ -955,12 +964,16 @@ class FlashcardViewSet(viewsets.ModelViewSet):
             increment_ai_usage(request.user)
             update_token_usage(request.user, flashcards_data.get('usage'))
 
-            for fc in flashcards_data.get('flashcards', []):
-                Flashcard.objects.create(
+            flashcards_to_create = [
+                Flashcard(
                     topic=topic,
                     front_text=fc.get('front', ''),
                     back_text=fc.get('back', '')
                 )
+                for fc in flashcards_data.get('flashcards', [])
+            ]
+            if flashcards_to_create:
+                Flashcard.objects.bulk_create(flashcards_to_create)
             
             flashcards = topic.flashcards.all()
         
@@ -1035,19 +1048,24 @@ class MCQViewSet(viewsets.ModelViewSet):
             increment_ai_usage(request.user)
             update_token_usage(request.user, mcqs_data.get('usage'))
 
+            mcqs_to_create = []
             for mcq in mcqs_data.get('mcqs', []):
                 options = mcq.get('options', {})
-                MCQQuestion.objects.create(
-                    topic=topic,
-                    question_text=mcq.get('question', ''),
-                    option_a=options.get('a', ''),
-                    option_b=options.get('b', ''),
-                    option_c=options.get('c', ''),
-                    option_d=options.get('d', ''),
-                    correct_option=mcq.get('correct', 'a'),
-                    explanation=mcq.get('explanation', ''),
-                    difficulty=mcq.get('difficulty', 'medium')
+                mcqs_to_create.append(
+                    MCQQuestion(
+                        topic=topic,
+                        question_text=mcq.get('question', ''),
+                        option_a=options.get('a', ''),
+                        option_b=options.get('b', ''),
+                        option_c=options.get('c', ''),
+                        option_d=options.get('d', ''),
+                        correct_option=mcq.get('correct', 'a'),
+                        explanation=mcq.get('explanation', ''),
+                        difficulty=mcq.get('difficulty', 'medium')
+                    )
                 )
+            if mcqs_to_create:
+                MCQQuestion.objects.bulk_create(mcqs_to_create)
             
             mcqs = topic.mcqs.all()
         
