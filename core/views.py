@@ -1471,6 +1471,7 @@ class StudyPlanViewSet(viewsets.ModelViewSet):
         topics_per_day = max(1, len(topics) // days_available)
         
         current_date = today
+        plan_items_to_create = []
         for i, topic in enumerate(topics):
             if i > 0 and i % topics_per_day == 0:
                 current_date += timedelta(days=1)
@@ -1478,10 +1479,14 @@ class StudyPlanViewSet(viewsets.ModelViewSet):
             if current_date >= exam_date:
                 current_date = exam_date - timedelta(days=1)
             
-            StudyPlanItem.objects.create(
-                plan=plan,
-                topic=topic,
-                scheduled_date=current_date
+            plan_items_to_create.append(
+                StudyPlanItem(
+                    plan=plan,
+                    topic=topic,
+                    scheduled_date=current_date
+                )
             )
         
+        StudyPlanItem.objects.bulk_create(plan_items_to_create)
+
         return Response(StudyPlanSerializer(plan).data)
