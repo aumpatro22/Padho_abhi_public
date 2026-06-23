@@ -137,7 +137,7 @@ def generate_content_task(topic_id: int, user_id: int, api_key: str = None):
             task.error_message = str(e)
             task.completed_at = timezone.now()
             task.save()
-        except:
+        except Exception:
             pass
         return {'status': 'failed', 'error': str(e)}
 
