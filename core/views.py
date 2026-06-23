@@ -6,7 +6,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.db.models import Sum, Count, Avg
+from django.db.models import Sum, Count, Avg, Prefetch
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 import re
@@ -517,7 +517,22 @@ class SubjectViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Subject.objects.filter(user=self.request.user)
+        return Subject.objects.filter(user=self.request.user).prefetch_related(
+            Prefetch(
+                'units',
+                queryset=Unit.objects.annotate(
+                    topic_count=Count('topics', distinct=True)
+                ).prefetch_related(
+                    Prefetch(
+                        'topics',
+                        queryset=Topic.objects.annotate(
+                            flashcard_count_annotated=Count('flashcards', distinct=True),
+                            mcq_count_annotated=Count('mcqs', distinct=True)
+                        ).select_related('note', 'mindmap')
+                    )
+                )
+            )
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -623,7 +638,17 @@ class UnitViewSet(viewsets.ModelViewSet):
     serializer_class = UnitSerializer
     
     def get_queryset(self):
-        queryset = Unit.objects.filter(subject__user=self.request.user)
+        queryset = Unit.objects.filter(subject__user=self.request.user).annotate(
+            topic_count=Count('topics', distinct=True)
+        ).prefetch_related(
+            Prefetch(
+                'topics',
+                queryset=Topic.objects.annotate(
+                    flashcard_count_annotated=Count('flashcards', distinct=True),
+                    mcq_count_annotated=Count('mcqs', distinct=True)
+                ).select_related('note', 'mindmap')
+            )
+        )
         subject_id = self.request.query_params.get('subject', None)
         if subject_id:
             queryset = queryset.filter(subject_id=subject_id)

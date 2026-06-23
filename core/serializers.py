@@ -58,9 +58,13 @@ class TopicSerializer(serializers.ModelSerializer):
         return hasattr(obj, 'mindmap')
     
     def get_flashcard_count(self, obj):
+        if hasattr(obj, 'flashcard_count_annotated'):
+            return obj.flashcard_count_annotated
         return obj.flashcards.count()
     
     def get_mcq_count(self, obj):
+        if hasattr(obj, 'mcq_count_annotated'):
+            return obj.mcq_count_annotated
         return obj.mcqs.count()
 
 
@@ -73,6 +77,8 @@ class UnitSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'unit_number', 'description', 'topics', 'topic_count']
     
     def get_topic_count(self, obj):
+        if hasattr(obj, 'topic_count'):
+            return obj.topic_count
         return obj.topics.count()
 
 
