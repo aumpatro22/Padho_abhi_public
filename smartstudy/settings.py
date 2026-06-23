@@ -34,7 +34,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', "django-insecure-m7_eo2cncht*+ke%yb&vo
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['*']  # Allow all hosts for now to simplify deployment
+_allowed_hosts = os.environ.get('ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts.split(',') if host.strip()]
 
 
 # Application definition
@@ -172,7 +173,7 @@ WHITENOISE_ROOT = REACT_APP_DIR
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS settings for React frontend
-CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'False').lower() in ('true', '1', 'yes')
 CORS_ALLOW_CREDENTIALS = True
 
 # REST Framework settings
@@ -198,7 +199,7 @@ NEON_AUTH_JWKS_CACHE_TTL = int(os.environ.get('NEON_AUTH_JWKS_CACHE_TTL', '300')
 
 # Gemini API Key - Prefer environment variable for security
 # Local dev fallback (not recommended in production; set in .env or environment variables instead)
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', "AIzaSyDBpFWNQgH_6oMzjBAF9m0JUIQBf7D1e68")
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
 # Email Configuration for verification
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
