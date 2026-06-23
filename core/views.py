@@ -30,6 +30,7 @@ from .serializers import (
 )
 from .ai_service import gemini_service
 import logging
+import concurrent.futures
 from datetime import timedelta
 
 
@@ -1158,22 +1159,41 @@ class PYQViewSet(viewsets.ModelViewSet):
         topic_map = {t.name.lower(): t for t in topics}
         
         tagged_count = 0
-        for pyq in untagged_pyqs:
-            result = gemini_service.tag_pyq_to_topic(pyq.question_text, topic_names)
-            
-            if 'error' in result:
-                continue
+        total_input_tokens = 0
+        total_output_tokens = 0
+        pyqs_to_update = []
 
-            update_token_usage(request.user, result.get('usage'))
-            topic_name = result.get('topic')
+        def tag_single_pyq(pyq):
+            return pyq, gemini_service.tag_pyq_to_topic(pyq.question_text, topic_names)
 
-            if topic_name:
-                topic_name_lower = topic_name.lower().strip()
-                if topic_name_lower in topic_map:
-                    pyq.topic = topic_map[topic_name_lower]
-                    pyq.is_tagged = True
-                    pyq.save()
-                    tagged_count += 1
+        untagged_list = list(untagged_pyqs)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(tag_single_pyq, pyq) for pyq in untagged_list]
+            for future in concurrent.futures.as_completed(futures):
+                pyq, result = future.result()
+
+                if 'error' in result:
+                    continue
+
+                usage = result.get('usage', {})
+                if usage:
+                    total_input_tokens += usage.get('input', 0)
+                    total_output_tokens += usage.get('output', 0)
+
+                topic_name = result.get('topic')
+                if topic_name:
+                    topic_name_lower = topic_name.lower().strip()
+                    if topic_name_lower in topic_map:
+                        pyq.topic = topic_map[topic_name_lower]
+                        pyq.is_tagged = True
+                        pyqs_to_update.append(pyq)
+                        tagged_count += 1
+
+        if pyqs_to_update:
+            PYQQuestion.objects.bulk_update(pyqs_to_update, ['topic', 'is_tagged'])
+
+        if total_input_tokens > 0 or total_output_tokens > 0:
+            update_token_usage(request.user, {'input': total_input_tokens, 'output': total_output_tokens})
         
         return Response({
             'status': 'success',
