@@ -42,7 +42,7 @@ class GeminiService:
                     'input': response.usage_metadata.prompt_token_count,
                     'output': response.usage_metadata.candidates_token_count
                 }
-        except:
+        except Exception:
             pass
         return {'input': 0, 'output': 0}
 
