@@ -102,9 +102,13 @@ class SubjectListSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'code', 'description', 'unit_count', 'topic_count']
     
     def get_unit_count(self, obj):
+        if hasattr(obj, 'annotated_unit_count'):
+            return obj.annotated_unit_count
         return obj.units.count()
     
     def get_topic_count(self, obj):
+        if hasattr(obj, 'annotated_topic_count'):
+            return obj.annotated_topic_count
         return Topic.objects.filter(unit__subject=obj).count()
 
 
