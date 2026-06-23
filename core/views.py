@@ -6,7 +6,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.db.models import Sum, Count, Avg
+from django.db.models import Sum, Count, Avg, Prefetch
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 import re
@@ -517,7 +517,16 @@ class SubjectViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Subject.objects.filter(user=self.request.user)
+        annotated_topics = Topic.objects.annotate(
+            annotated_flashcard_count=Count('flashcards', distinct=True),
+            annotated_mcq_count=Count('mcqs', distinct=True)
+        )
+        prefetched_units = Unit.objects.prefetch_related(
+            Prefetch('topics', queryset=annotated_topics)
+        )
+        return Subject.objects.filter(user=self.request.user).prefetch_related(
+            Prefetch('units', queryset=prefetched_units)
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -623,7 +632,13 @@ class UnitViewSet(viewsets.ModelViewSet):
     serializer_class = UnitSerializer
     
     def get_queryset(self):
-        queryset = Unit.objects.filter(subject__user=self.request.user)
+        annotated_topics = Topic.objects.annotate(
+            annotated_flashcard_count=Count('flashcards', distinct=True),
+            annotated_mcq_count=Count('mcqs', distinct=True)
+        )
+        queryset = Unit.objects.filter(subject__user=self.request.user).prefetch_related(
+            Prefetch('topics', queryset=annotated_topics)
+        )
         subject_id = self.request.query_params.get('subject', None)
         if subject_id:
             queryset = queryset.filter(subject_id=subject_id)
@@ -635,7 +650,10 @@ class TopicViewSet(viewsets.ModelViewSet):
     serializer_class = TopicSerializer
     
     def get_queryset(self):
-        queryset = Topic.objects.filter(unit__subject__user=self.request.user)
+        queryset = Topic.objects.filter(unit__subject__user=self.request.user).annotate(
+            annotated_flashcard_count=Count('flashcards', distinct=True),
+            annotated_mcq_count=Count('mcqs', distinct=True)
+        )
         unit_id = self.request.query_params.get('unit', None)
         subject_id = self.request.query_params.get('subject', None)
         if unit_id:
