@@ -199,7 +199,7 @@ NEON_AUTH_JWKS_CACHE_TTL = int(os.environ.get('NEON_AUTH_JWKS_CACHE_TTL', '300')
 
 # Gemini API Key - Prefer environment variable for security
 # Local dev fallback (not recommended in production; set in .env or environment variables instead)
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', "AIzaSyDBpFWNQgH_6oMzjBAF9m0JUIQBf7D1e68")
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
 # Email Configuration for verification
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
