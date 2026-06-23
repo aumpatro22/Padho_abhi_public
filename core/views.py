@@ -79,7 +79,7 @@ def check_ai_usage(user):
     """
     try:
         profile = user.profile
-    except:
+    except UserProfile.DoesNotExist:
         # Should exist due to signal, but just in case
         profile = UserProfile.objects.create(user=user)
     
@@ -112,7 +112,7 @@ def increment_ai_usage(user):
         if not profile.get_api_key():
             profile.daily_ai_usage_count += 1
             profile.save()
-    except:
+    except Exception:
         pass
 
 def validate_positive_integer(value, field_name='value'):
@@ -485,7 +485,7 @@ The Padho Abhi Team
             data['total_input_tokens'] = profile.total_input_tokens
             data['total_output_tokens'] = profile.total_output_tokens
             data['estimated_cost'] = float(profile.estimated_cost)
-        except:
+        except Exception:
             data['has_api_key'] = False
             data['daily_usage'] = 0
             data['total_input_tokens'] = 0
@@ -499,7 +499,7 @@ The Padho Abhi Team
         api_key = request.data.get('api_key', '').strip()
         try:
             profile = request.user.profile
-        except:
+        except UserProfile.DoesNotExist:
             profile = UserProfile.objects.create(user=request.user)
         
         # Use encrypted setter
