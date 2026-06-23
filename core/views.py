@@ -79,7 +79,7 @@ def check_ai_usage(user):
     """
     try:
         profile = user.profile
-    except Exception:
+    except UserProfile.DoesNotExist:
         # Should exist due to signal, but just in case
         profile = UserProfile.objects.create(user=user)
     
@@ -499,7 +499,7 @@ The Padho Abhi Team
         api_key = request.data.get('api_key', '').strip()
         try:
             profile = request.user.profile
-        except Exception:
+        except UserProfile.DoesNotExist:
             profile = UserProfile.objects.create(user=request.user)
         
         # Use encrypted setter
