@@ -173,7 +173,8 @@ WHITENOISE_ROOT = REACT_APP_DIR
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS settings for React frontend
-CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'False').lower() in ('true', '1', 'yes')
+_cors_allowed_origins = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in _cors_allowed_origins.split(',') if origin.strip()]
 CORS_ALLOW_CREDENTIALS = True
 
 # REST Framework settings
