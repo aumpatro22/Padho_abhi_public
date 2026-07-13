@@ -7,7 +7,6 @@ from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Sum, Count, Avg
-from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 import re
 import html
