@@ -1036,9 +1036,10 @@ class MCQViewSet(viewsets.ModelViewSet):
             increment_ai_usage(request.user)
             update_token_usage(request.user, mcqs_data.get('usage'))
 
+            mcqs_to_create = []
             for mcq in mcqs_data.get('mcqs', []):
                 options = mcq.get('options', {})
-                MCQQuestion.objects.create(
+                mcqs_to_create.append(MCQQuestion(
                     topic=topic,
                     question_text=mcq.get('question', ''),
                     option_a=options.get('a', ''),
@@ -1048,7 +1049,9 @@ class MCQViewSet(viewsets.ModelViewSet):
                     correct_option=mcq.get('correct', 'a'),
                     explanation=mcq.get('explanation', ''),
                     difficulty=mcq.get('difficulty', 'medium')
-                )
+                ))
+            if mcqs_to_create:
+                MCQQuestion.objects.bulk_create(mcqs_to_create)
             
             mcqs = topic.mcqs.all()
         
