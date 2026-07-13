@@ -13,7 +13,7 @@ def generate_content_task(topic_id: int, user_id: int, api_key: str = None):
     Background task to generate all AI content for a topic.
     This runs asynchronously to prevent blocking the request.
     """
-    from .models import Topic, Note, Mindmap, Flashcard, MCQQuestion, UserProfile, AITask
+    from .models import Topic, Note, Mindmap, Flashcard, MCQQuestion, AITask
     from .ai_service import gemini_service
     from django.contrib.auth.models import User
     
