@@ -622,6 +622,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
 class UnitViewSet(viewsets.ModelViewSet):
     queryset = Unit.objects.all()
     serializer_class = UnitSerializer
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         queryset = Unit.objects.filter(subject__user=self.request.user)
@@ -634,6 +635,7 @@ class UnitViewSet(viewsets.ModelViewSet):
 class TopicViewSet(viewsets.ModelViewSet):
     queryset = Topic.objects.all()
     serializer_class = TopicSerializer
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         queryset = Topic.objects.filter(unit__subject__user=self.request.user)
@@ -797,6 +799,7 @@ class TopicViewSet(viewsets.ModelViewSet):
 class NoteViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Note.objects.filter(topic__unit__subject__user=self.request.user)
@@ -855,6 +858,7 @@ class NoteViewSet(viewsets.ReadOnlyModelViewSet):
 class MindmapViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Mindmap.objects.all()
     serializer_class = MindmapSerializer
+    permission_classes = [permissions.IsAuthenticated]
     
     @action(detail=False, methods=['get'])
     def by_topic(self, request):
@@ -908,6 +912,7 @@ class MindmapViewSet(viewsets.ReadOnlyModelViewSet):
 class FlashcardViewSet(viewsets.ModelViewSet):
     queryset = Flashcard.objects.all()
     serializer_class = FlashcardSerializer
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         queryset = Flashcard.objects.filter(topic__unit__subject__user=self.request.user)
@@ -989,6 +994,7 @@ class FlashcardViewSet(viewsets.ModelViewSet):
 class MCQViewSet(viewsets.ModelViewSet):
     queryset = MCQQuestion.objects.all()
     serializer_class = MCQQuestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         queryset = MCQQuestion.objects.filter(topic__unit__subject__user=self.request.user)
@@ -1097,6 +1103,7 @@ class MCQViewSet(viewsets.ModelViewSet):
 class PYQViewSet(viewsets.ModelViewSet):
     queryset = PYQQuestion.objects.all()
     serializer_class = PYQQuestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
         queryset = PYQQuestion.objects.filter(subject__user=self.request.user)
