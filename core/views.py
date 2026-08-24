@@ -961,12 +961,16 @@ class FlashcardViewSet(viewsets.ModelViewSet):
             increment_ai_usage(request.user)
             update_token_usage(request.user, flashcards_data.get('usage'))
 
-            for fc in flashcards_data.get('flashcards', []):
-                Flashcard.objects.create(
+            flashcards_to_create = [
+                Flashcard(
                     topic=topic,
                     front_text=fc.get('front', ''),
                     back_text=fc.get('back', '')
                 )
+                for fc in flashcards_data.get('flashcards', [])
+            ]
+            if flashcards_to_create:
+                Flashcard.objects.bulk_create(flashcards_to_create)
             
             flashcards = topic.flashcards.all()
         
