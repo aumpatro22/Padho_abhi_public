@@ -732,18 +732,22 @@ class TopicViewSet(viewsets.ModelViewSet):
         
         # Save flashcards
         if 'flashcards' in content and content['flashcards']:
+            flashcards = []
             for fc in content['flashcards']:
-                Flashcard.objects.create(
+                flashcards.append(Flashcard(
                     topic=topic,
                     front_text=fc.get('front', ''),
                     back_text=fc.get('back', '')
-                )
+                ))
+            if flashcards:
+                Flashcard.objects.bulk_create(flashcards)
         
         # Save MCQs
         if 'mcqs' in content and content['mcqs']:
+            mcq_objects = []
             for mcq in content['mcqs']:
                 options = mcq.get('options', {})
-                MCQQuestion.objects.create(
+                mcq_objects.append(MCQQuestion(
                     topic=topic,
                     question_text=mcq.get('question', ''),
                     option_a=options.get('a', ''),
@@ -753,7 +757,9 @@ class TopicViewSet(viewsets.ModelViewSet):
                     correct_option=mcq.get('correct', 'a'),
                     explanation=mcq.get('explanation', ''),
                     difficulty=mcq.get('difficulty', 'medium')
-                )
+                ))
+            if mcq_objects:
+                MCQQuestion.objects.bulk_create(mcq_objects)
         
         return Response({
             'status': 'success',
@@ -1036,9 +1042,10 @@ class MCQViewSet(viewsets.ModelViewSet):
             increment_ai_usage(request.user)
             update_token_usage(request.user, mcqs_data.get('usage'))
 
+            mcq_objects = []
             for mcq in mcqs_data.get('mcqs', []):
                 options = mcq.get('options', {})
-                MCQQuestion.objects.create(
+                mcq_objects.append(MCQQuestion(
                     topic=topic,
                     question_text=mcq.get('question', ''),
                     option_a=options.get('a', ''),
@@ -1048,7 +1055,9 @@ class MCQViewSet(viewsets.ModelViewSet):
                     correct_option=mcq.get('correct', 'a'),
                     explanation=mcq.get('explanation', ''),
                     difficulty=mcq.get('difficulty', 'medium')
-                )
+                ))
+            if mcq_objects:
+                MCQQuestion.objects.bulk_create(mcq_objects)
             
             mcqs = topic.mcqs.all()
         
