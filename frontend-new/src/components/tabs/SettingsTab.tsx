@@ -71,9 +71,10 @@ export function SettingsTab() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Your API Key</label>
+            <label htmlFor="api-key-input" className="block text-sm font-medium mb-1">Your API Key</label>
             <div className="flex gap-2">
               <Input
+                id="api-key-input"
                 type="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}

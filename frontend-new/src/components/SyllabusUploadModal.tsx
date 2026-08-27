@@ -57,10 +57,11 @@ export function SyllabusUploadModal({ isOpen, onClose, onSuccess }: SyllabusUplo
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div>
-            <label className="block text-sm font-semibold mb-2">
+            <label htmlFor="subject-name" className="block text-sm font-semibold mb-2">
               Subject Name <span className="text-destructive">*</span>
             </label>
             <Input
+              id="subject-name"
               value={subjectName}
               onChange={(e) => setSubjectName(e.target.value)}
               placeholder="e.g., Data Structures, Art History"
@@ -68,10 +69,11 @@ export function SyllabusUploadModal({ isOpen, onClose, onSuccess }: SyllabusUplo
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2">
+            <label htmlFor="syllabus-content" className="block text-sm font-semibold mb-2">
               Syllabus Content <span className="text-destructive">*</span>
             </label>
             <Textarea
+              id="syllabus-content"
               value={syllabusText}
               onChange={(e) => setSyllabusText(e.target.value)}
               placeholder="Paste your syllabus text here from PDF, Word, or Website..."
