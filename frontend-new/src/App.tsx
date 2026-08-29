@@ -418,6 +418,7 @@ function TopicPage() {
         whileTap={{ scale: 0.9 }}
         onClick={() => handleCompleteTopic(false)}
         className="md:hidden fixed bottom-24 right-4 z-40 bg-success text-white p-3 rounded-full shadow-lg shadow-success/30"
+        aria-label="Complete topic"
       >
         <CheckCircle2 className="h-6 w-6" />
       </motion.button>
