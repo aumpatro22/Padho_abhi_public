@@ -1,3 +1,3 @@
-## 2024-06-22 - Sidebar Icon Buttons Accessibility
-**Learning:** Found missing `aria-label`s on icon-only buttons (`X` and `Settings`) in the `Sidebar` component, making them inaccessible to screen readers since they have no text content.
-**Action:** Always add descriptive `aria-label` attributes to any icon-only `<Button>` or `<button>` components (e.g., `aria-label="Close sidebar"`).
+## 2024-05-18 - Missing ARIA Labels on Icon Buttons
+**Learning:** Icon-only buttons (like the password toggle, toast close button, and chat send button) in this app's components frequently lack `aria-label` attributes, making them inaccessible to screen reader users.
+**Action:** Add descriptive `aria-label` attributes to these components to improve accessibility without changing the visual layout.
