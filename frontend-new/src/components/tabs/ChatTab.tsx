@@ -148,6 +148,7 @@ export function ChatTab({ topicId, topicName }: ChatTabProps) {
               disabled={loading || !input.trim()}
               size="icon"
               className="px-6"
+              aria-label="Send message"
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
