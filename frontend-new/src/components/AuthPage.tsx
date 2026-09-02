@@ -416,8 +416,9 @@ export function AuthPage({ onLogin }: AuthPageProps) {
             <CardContent className="space-y-4">
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Email</label>
+                  <label htmlFor="forgot-email" className="block text-sm font-medium mb-1">Email</label>
                   <Input
+                    id="forgot-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -495,8 +496,9 @@ export function AuthPage({ onLogin }: AuthPageProps) {
             <CardContent className="space-y-4">
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">New Password</label>
+                  <label htmlFor="reset-password" className="block text-sm font-medium mb-1">New Password</label>
                   <Input
+                    id="reset-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -506,8 +508,9 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Confirm Password</label>
+                  <label htmlFor="reset-confirm-password" className="block text-sm font-medium mb-1">Confirm Password</label>
                   <Input
+                    id="reset-confirm-password"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -594,8 +597,9 @@ export function AuthPage({ onLogin }: AuthPageProps) {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Username</label>
+                <label htmlFor="auth-username" className="block text-sm font-medium mb-1">Username</label>
                 <Input
+                  id="auth-username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter username"
@@ -610,8 +614,9 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                   >
-                    <label className="block text-sm font-medium mb-1">Email</label>
+                    <label htmlFor="auth-email" className="block text-sm font-medium mb-1">Email</label>
                     <Input
+                      id="auth-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -623,9 +628,10 @@ export function AuthPage({ onLogin }: AuthPageProps) {
               </AnimatePresence>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Password</label>
+                <label htmlFor="auth-password" className="block text-sm font-medium mb-1">Password</label>
                 <div className="relative">
                   <Input
+                    id="auth-password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -638,6 +644,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -654,8 +661,9 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                   >
-                    <label className="block text-sm font-medium mb-1">Confirm Password</label>
+                    <label htmlFor="auth-confirm-password" className="block text-sm font-medium mb-1">Confirm Password</label>
                     <Input
+                      id="auth-confirm-password"
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -732,6 +740,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
 
             <form onSubmit={handleNeonTokenLogin} className="space-y-3">
               <Input
+                aria-label="Paste Neon Auth token"
                 type="password"
                 value={neonToken}
                 onChange={(e) => setNeonToken(e.target.value)}
