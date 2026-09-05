@@ -183,6 +183,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
               size="icon"
               onClick={() => setIsSidebarOpen(true)}
               className="lg:hidden flex-shrink-0 active:scale-90 transition-transform"
+              aria-label="Open sidebar"
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -195,7 +196,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-1 md:gap-4 flex-shrink-0">
             <motion.div whileTap={{ scale: 0.9, rotate: 15 }}>
-              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
                 {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
               </Button>
             </motion.div>
@@ -418,6 +419,7 @@ function TopicPage() {
         whileTap={{ scale: 0.9 }}
         onClick={() => handleCompleteTopic(false)}
         className="md:hidden fixed bottom-24 right-4 z-40 bg-success text-white p-3 rounded-full shadow-lg shadow-success/30"
+        aria-label="Mark topic as complete"
       >
         <CheckCircle2 className="h-6 w-6" />
       </motion.button>
