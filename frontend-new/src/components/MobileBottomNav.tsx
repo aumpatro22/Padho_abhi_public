@@ -42,6 +42,7 @@ export function MobileBottomNav({
         <button
           onClick={onMenuClick}
           className="flex flex-col items-center justify-center p-2 min-w-[56px] rounded-xl transition-all active:scale-90"
+          aria-label="Open menu"
         >
           <motion.div
             whileTap={{ scale: 0.85 }}
