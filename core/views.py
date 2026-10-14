@@ -647,103 +647,82 @@ class TopicViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(unit__subject_id=subject_id)
         return queryset
     
-    @action(detail=True, methods=['post'])
-    def generate_content(self, request, pk=None):
-        """Generate all content (notes, mindmap, flashcards, MCQs) for a topic"""
-        # Check usage limit
-        allowed, api_key, error_response = check_ai_usage(request.user)
-        if not allowed:
-            return error_response
-
-        topic = self.get_object()
-        subject_name = topic.unit.subject.name
-        
-        # Check if async mode requested
+    def _handle_async_generation(self, request, topic, api_key):
         use_async = request.data.get('async', False) and is_async_enabled()
-        
-        if use_async:
-            # Create pending task record
-            task, _ = AITask.objects.update_or_create(
-                topic=topic,
-                user=request.user,
-                task_type='generate_all',
-                defaults={'status': 'pending'}
-            )
-            
-            # Run in background
-            from .tasks import generate_content_task
-            is_async, task_id = run_task_async(
-                generate_content_task,
-                topic.id,
-                request.user.id,
-                api_key
-            )
-            
-            if is_async:
-                return Response({
-                    'status': 'processing',
-                    'message': 'Content generation started in background',
-                    'task_id': str(task.id),
-                    'poll_url': f'/api/topics/{topic.id}/task_status/'
-                }, status=status.HTTP_202_ACCEPTED)
-        
-        # Synchronous generation (original behavior)
-        content = gemini_service.generate_all_content(topic.name, subject_name, api_key=api_key)
+        if not use_async:
+            return None
 
-        # Check for errors in content (e.g., AI rate limits or parsing failures)
+        task, _ = AITask.objects.update_or_create(
+            topic=topic,
+            user=request.user,
+            task_type='generate_all',
+            defaults={'status': 'pending'}
+        )
+        
+        from .tasks import generate_content_task
+        is_async, task_id = run_task_async(
+            generate_content_task,
+            topic.id,
+            request.user.id,
+            api_key
+        )
+        
+        if is_async:
+            return Response({
+                'status': 'processing',
+                'message': 'Content generation started in background',
+                'task_id': str(task.id),
+                'poll_url': f'/api/topics/{topic.id}/task_status/'
+            }, status=status.HTTP_202_ACCEPTED)
+        return None
+
+    def _validate_content_errors(self, content):
         errors = []
-        if 'notes' in content and isinstance(content['notes'], dict) and 'error' in content['notes']:
-            errors.append(('notes', content['notes']['error']))
-        if 'mindmap' in content and isinstance(content['mindmap'], dict) and 'error' in content['mindmap']:
-            errors.append(('mindmap', content['mindmap']['error']))
-        if 'flashcards' in content and isinstance(content['flashcards'], dict) and 'error' in content['flashcards']:
-            errors.append(('flashcards', content['flashcards']['error']))
-        if 'mcqs' in content and isinstance(content['mcqs'], dict) and 'error' in content['mcqs']:
-            errors.append(('mcqs', content['mcqs']['error']))
-        # If we find rate-limit errors, return 429 immediately
+        for part in ['notes', 'mindmap', 'flashcards', 'mcqs']:
+            val = content.get(part)
+            if isinstance(val, dict) and 'error' in val:
+                errors.append((part, val['error']))
+
         for part, err in errors:
             if is_rate_limit_error(err):
                 return Response({'error': 'AI quota exceeded: ' + str(err)}, status=status.HTTP_429_TOO_MANY_REQUESTS)
         if errors:
-            # Return an internal server error with details about what failed
             logger.error('AI generation failed for parts: %s', errors)
             return Response({'error': 'AI generation failed', 'details': errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        # Increment usage if successful
-        increment_ai_usage(request.user)
-        update_token_usage(request.user, content.get('usage'))
 
-        # Save notes
-        if 'notes' in content and 'error' not in content['notes']:
+        return None
+
+    def _save_notes(self, topic, notes_data):
+        if notes_data and isinstance(notes_data, dict) and 'error' not in notes_data:
             Note.objects.update_or_create(
                 topic=topic,
                 defaults={
-                    'summary': content['notes'].get('summary', ''),
-                    'detailed_content': content['notes'].get('detailed_content', ''),
-                    'analogies': content['notes'].get('analogies', []),
-                    'diagram_description': content['notes'].get('diagram_description', '')
+                    'summary': notes_data.get('summary', ''),
+                    'detailed_content': notes_data.get('detailed_content', ''),
+                    'analogies': notes_data.get('analogies', []),
+                    'diagram_description': notes_data.get('diagram_description', '')
                 }
             )
-        
-        # Save mindmap
-        if 'mindmap' in content and 'error' not in content['mindmap']:
+
+    def _save_mindmap(self, topic, mindmap_data):
+        if mindmap_data and isinstance(mindmap_data, dict) and 'error' not in mindmap_data:
             Mindmap.objects.update_or_create(
                 topic=topic,
-                defaults={'json_data': content['mindmap']}
+                defaults={'json_data': mindmap_data}
             )
-        
-        # Save flashcards
-        if 'flashcards' in content and content['flashcards']:
-            for fc in content['flashcards']:
+
+    def _save_flashcards(self, topic, flashcards_list):
+        if flashcards_list and isinstance(flashcards_list, list):
+            for fc in flashcards_list:
                 Flashcard.objects.create(
                     topic=topic,
                     front_text=fc.get('front', ''),
                     back_text=fc.get('back', '')
                 )
-        
-        # Save MCQs
-        if 'mcqs' in content and content['mcqs']:
-            for mcq in content['mcqs']:
+
+    def _save_mcqs(self, topic, mcqs_list):
+        if mcqs_list and isinstance(mcqs_list, list):
+            for mcq in mcqs_list:
                 options = mcq.get('options', {})
                 MCQQuestion.objects.create(
                     topic=topic,
@@ -756,7 +735,39 @@ class TopicViewSet(viewsets.ModelViewSet):
                     explanation=mcq.get('explanation', ''),
                     difficulty=mcq.get('difficulty', 'medium')
                 )
+
+    def _save_generated_content(self, topic, content):
+        self._save_notes(topic, content.get('notes'))
+        self._save_mindmap(topic, content.get('mindmap'))
+        self._save_flashcards(topic, content.get('flashcards'))
+        self._save_mcqs(topic, content.get('mcqs'))
+
+    @action(detail=True, methods=['post'])
+    def generate_content(self, request, pk=None):
+        """Generate all content (notes, mindmap, flashcards, MCQs) for a topic"""
+        # Check usage limit
+        allowed, api_key, error_response = check_ai_usage(request.user)
+        if not allowed:
+            return error_response
+
+        topic = self.get_object()
         
+        async_response = self._handle_async_generation(request, topic, api_key)
+        if async_response:
+            return async_response
+
+        subject_name = topic.unit.subject.name
+        content = gemini_service.generate_all_content(topic.name, subject_name, api_key=api_key)
+
+        error_response = self._validate_content_errors(content)
+        if error_response:
+            return error_response
+
+        increment_ai_usage(request.user)
+        update_token_usage(request.user, content.get('usage'))
+
+        self._save_generated_content(topic, content)
+
         return Response({
             'status': 'success',
             'message': f'Content generated for {topic.name}',
