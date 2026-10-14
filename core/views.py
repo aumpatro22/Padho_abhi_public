@@ -9,7 +9,6 @@ from django.utils import timezone
 from django.db.models import Sum, Count, Avg
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-import re
 import html
 from .models import (
     Subject, Unit, Topic, Note, Mindmap, Flashcard, FlashcardReview,
