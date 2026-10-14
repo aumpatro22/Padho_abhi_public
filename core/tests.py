@@ -1,7 +1,10 @@
 import os
+import importlib
 from unittest.mock import patch
 from django.test import TestCase
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
+import smartstudy.settings as smartstudy_settings
 
 class SecuritySettingsTest(TestCase):
     def test_debug_is_false_by_default(self):
@@ -24,3 +27,27 @@ class SecuritySettingsTest(TestCase):
         with patch.dict(os.environ, clear=True):
             debug_val = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
             self.assertFalse(debug_val)
+
+    def test_secret_key_raises_in_production_when_missing(self):
+        """
+        Ensure ImproperlyConfigured is raised when SECRET_KEY is missing and DEBUG is False.
+        """
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaises(ImproperlyConfigured):
+                importlib.reload(smartstudy_settings)
+
+    def test_secret_key_fallback_in_debug_mode(self):
+        """
+        Ensure dev fallback secret key is used when SECRET_KEY is missing and DEBUG is True.
+        """
+        with patch.dict(os.environ, {'DEBUG': 'True'}, clear=True):
+            importlib.reload(smartstudy_settings)
+            self.assertEqual(smartstudy_settings.SECRET_KEY, "django-insecure-dev-key-change-in-production")
+
+    def test_secret_key_from_environment(self):
+        """
+        Ensure SECRET_KEY is loaded properly from environment variable when supplied.
+        """
+        with patch.dict(os.environ, {'SECRET_KEY': 'custom-secret-key-for-testing'}, clear=True):
+            importlib.reload(smartstudy_settings)
+            self.assertEqual(smartstudy_settings.SECRET_KEY, 'custom-secret-key-for-testing')
