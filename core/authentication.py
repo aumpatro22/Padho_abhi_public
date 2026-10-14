@@ -105,7 +105,11 @@ class NeonJWTAuthentication(authentication.BaseAuthentication):
         public_key = _get_public_key(token)
 
         try:
-            options = {"verify_aud": bool(getattr(settings, "NEON_AUTH_AUDIENCE", ""))}
+            options = {
+                "verify_signature": True,
+                "verify_exp": True,
+                "verify_aud": bool(getattr(settings, "NEON_AUTH_AUDIENCE", "")),
+            }
             claims = jwt.decode(
                 token,
                 public_key,
